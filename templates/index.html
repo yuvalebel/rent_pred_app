@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>הערכת מחיר דירה</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="main-title" style="{% if prediction is none %}display:none;{% endif %}">הערכת מחיר דירה</h1>
+            <p>הכניסו את פרטי הנכס וקבלו הערכת מחיר מדויקת</p>
+        </header>
+        <form method="post" action="/predict" class="form">
+            <div class="form-group">
+                <label for="property_type">סוג נכס:</label>
+                <select name="property_type" id="property_type">
+                    <option value="">בחר סוג נכס</option>
+                    <option value="דירה">דירה</option>
+                    <option value="דירת גן">דירת גן</option>
+                    <option value="בית פרטי">בית פרטי</option>
+                    <option value="קוטג'">קוטג'</option>
+                    <option value="גג">גג</option>
+                    <option value="פנטהאוז">פנטהאוז</option>
+                    <option value="מגרש">מגרש</option>
+                    <option value="דוplex">דוplex</option>
+                    <option value="תיירות ונופש">תיירות ונופש</option>
+                    <option value="כללי">כללי</option>
+                </select>
+            </div>
+
+            {% for field in [
+                ('neighborhood', 'שכונה'),
+                ('address', 'כתובת'),
+                ('room_num', 'מספר חדרים'),
+                ('floor', 'קומה'),
+                ('area', 'שטח בנוי (מ"ר)'),
+                ('garden_area', 'שטח גינה (מ"ר)'),
+                ('days_on_market', 'מספר ימים לכניסה'),
+                ('num_of_payments', 'תשלומים בשנה'),
+                ('monthly_arnona', 'ארנונה חודשית'),
+                ('building_tax', 'ועד בית בחודש'),
+                ('total_floors', 'קומות בבניין'),
+                ('description', 'תיאור'),
+                ('num_of_images', 'מספר תמונות מצורפות'),
+                ('distance_from_center', '*מרחק ממרכז העיר במטרים')
+            ] %}
+            <div class="form-group">
+                <label for="{{ field[0] }}">{{ field[1] }}:</label>
+                {% if field[0] == 'description' %}
+                    <textarea name="{{ field[0] }}" id="{{ field[0] }}"></textarea>
+                {% elif field[0] == 'neighborhood' %}
+                    <select name="neighborhood" id="neighborhood">
+                        <option value="">בחר שכונה</option>
+                        {% for neighborhood in [
+                            'הצפון הישן החלק המרכזי', 'בית שטראוס', 'התקווה', 'הגוש הגדול',
+                            'נוה שרת', 'קרית שלום', 'יפו ד', 'נוה חן',
+                            'לב תל אביב החלק הדרומי', 'תל חיים', 'כרם התימנים', 'כפיר',
+                            'תל כביר', 'בצרון', 'שפירא', 'הצפון החדש החלק הצפוני',
+                            'תל ברוך צפון', 'נוה אליעזר', 'צפון יפו', 'נחלת יצחק',
+                            'מרכז יפו מזרחית לשדרות ירושלים', 'נוה שאנן', 'גבעת הרצל',
+                            'רמת החייל', 'רמת אביב החדשה', 'עזרא', 'יד אליהו', 'רביבים',
+                            'נוה ברבור', 'לב תל אביב החלק הצפוני',  'מערב', 'כוכב הצפון',
+                            'גני צהלה', 'נאות אפקה ב', 'אזורי חן', 'הדר יוסף', 'לבנה',
+                            'לינקולן', 'חוף הצוק', 'נאות אפקה א', 'פארק צמרת', 'הקריה',
+                            'שיכוני חסכון', 'המשתלה', 'צהלון', 'דקר', 'רמת הטייסים',
+                            'רמת אביב', 'יפו ג', 'רמת ישראל', 'אפקה', 'נמל תל אביב',
+                            'נוה אביבים', 'הצפון החדש החלק הדרומי', 'מע"ר צפוני',
+                            'הצפון הישן החלק הצפוני', 'הצפון הישן החלק הדרום מזרחי',
+                            'רמת אביב ג', "עג'מי", 'פלורנטין', 'שבזי',
+                            'הצפון החדש סביבת ככר המדינה', 'שיכון בבלי',
+                            'הצפון הישן החלק הדרום מערבי', 'מונטיפיורי'
+                        ] %}
+                            <option value="{{ neighborhood }}">{{ neighborhood }}</option>
+                        {% endfor %}
+                    </select>
+                {% elif field[0] == 'address' %}
+                    <input type="text" name="{{ field[0] }}" id="{{ field[0] }}">
+                {% else %}
+                    <input type="number" name="{{ field[0] }}" id="{{ field[0] }}">
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>מאפייני הנכס:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="has_parking" value="1">חניה</label>
+                    <label><input type="checkbox" name="has_storage" value="1">מחסן</label>
+                    <label><input type="checkbox" name="elevator" value="1">מעלית</label>
+                    <label><input type="checkbox" name="ac" value="1">מיזוג</label>
+                    <label><input type="checkbox" name="handicap" value="1">נגישות</label>
+                    <label><input type="checkbox" name="has_bars" value="1">סורגים</label>
+                    <label><input type="checkbox" name="has_safe_room" value="1">ממ"ד</label>
+                    <label><input type="checkbox" name="has_balcony" value="1">מרפסת</label>
+                    <label><input type="checkbox" name="is_furnished" value="1">מרוהטת</label>
+                    <label><input type="checkbox" name="is_renovated" value="1">משופצת</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">הערך מחיר</button>
+        </form>
+
+        {% if prediction is not none %}
+        <div class="result">
+            <h2>המחיר החזוי הוא:</h2>
+            <p>{{ prediction }} ₪</p>
+        </div>
+        {% endif %}
+
+        <footer></footer>
+    </div>
+
+    <script>
+        window.onload = function() {
+            var title = document.getElementById('main-title');
+            {% if prediction is not none %}
+                title.style.display = 'block';
+            {% else %}
+                title.style.display = 'none';
+            {% endif %}
+        }
+    </script>
+</body>
+</html>
